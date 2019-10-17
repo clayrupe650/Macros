@@ -20,13 +20,13 @@ sub check_DivineArb
 			/declare i int local
 			/declare s int local
 			/for i 0 to ${Group}
-				/if (${SpawnCount[pc ${Group.Member[${i}]}]}) {
-					/if (${SpawnCount[ID ${Spawn[${Group.Member[${i}]}].ID} radius 70]} > 0 && ${NetBots[${Group.Member[${i}]}].Zone} == ${Zone.ID} && (${NetBots[${Group.Member[${i}]}].PctHPs} < ${DivineArb_Pct} || ${Spawn[pc ${Group.Member[${i}]}].PctHPs} < ${DivineArb_Pct})) {
+				/if (${SpawnCount[pc =${Group.Member[${i}]}]}) {
+					/if (${SpawnCount[ID ${Spawn[${Group.Member[${i}]}].ID} radius 70]} > 0 && ${NetBots[${Group.Member[${i}]}].Zone} == ${Zone.ID} && (${NetBots[${Group.Member[${i}]}].PctHPs} < ${DivineArb_Pct} || ${Spawn[pc =${Group.Member[${i}]}].PctHPs} < ${DivineArb_Pct})) {
 			  /for s 1 to ${dArbArray2D.Size[1]}
 				/call check_Ready "dArbArray2D" ${s}
 				/if (${c_Ready}) {
 				  /if (${Me.Casting.ID}) /call interrupt
-				  /bc [+g+] Casting ${dArbArray2D[${s},${iCastName}]} for ${Group.Member[${i}]}-NB:${NetBots[${Group.Member[${i}]}].PctHPs},SP:${Spawn[pc ${Group.Member[${i}]}].PctHPs}
+				  /bc [+g+] Casting ${dArbArray2D[${s},${iCastName}]} for ${Group.Member[${i}]}-NB:${NetBots[${Group.Member[${i}]}].PctHPs},SP:${Spawn[pc =${Group.Member[${i}]}].PctHPs}
 				  /call e3_Cast ${Me.ID} "dArbArray2D" ${s}
 							}
 			  /if (!${ActionTaken}) /next s
@@ -46,7 +46,7 @@ sub check_celestialRegen
 		/declare i int local
 		| Count group members in zone
 		/for i 0 to ${Group}
-			/if (${SpawnCount[pc ${Group.Member[${i}]}]}) {
+			/if (${SpawnCount[pc =${Group.Member[${i}]}]}) {
 				/varcalc averageHP ${averageHP} + ${If[${NetBots[${Group.Member[${i}]}].ID},${NetBots[${Group.Member[${i}]}].PctHPs},${Group.Member[${i}].PctHPs}]}
 				/varcalc groupSize ${groupSize} + 1
 			}

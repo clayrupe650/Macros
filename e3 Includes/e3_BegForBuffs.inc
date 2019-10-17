@@ -52,7 +52,7 @@ SUB event_Chat(ChatChannel, ChatSender, ChatText)
       }
     }
     | Check zone
-    /if (!${SpawnCount[pc ${ChatSender}]}) {
+    /if (!${SpawnCount[pc =${ChatSender}]}) {
       /if (${ChatChannel.Equal[TELL]}) /tell ${ChatSender} We're not in the same zone!
       /return
     }
@@ -84,7 +84,7 @@ SUB event_Chat(ChatChannel, ChatSender, ChatText)
       /return
     }
     | Check Range
-    /if (!${check_Distance[${Spawn[pc ${ChatSender}].ID},${begBuffArray2D[1,${iMyRange}]}]}) {
+    /if (!${check_Distance[${Spawn[pc =${ChatSender}].ID},${begBuffArray2D[1,${iMyRange}]}]}) {
       /if (${ChatChannel.Equal[TELL]}) {
         /tell ${ChatSender} You're out of range!
       } else {
@@ -158,12 +158,12 @@ SUB event_buffRequestRelay(line, ChatSender, eventParams)
     }
   }
   | Check zone
-  /if (!${SpawnCount[pc ${ChatSender}]}) {
+  /if (!${SpawnCount[pc =${ChatSender}]}) {
     /tell ${ChatSender} We're not in the same zone!
     /return
   }
   | Check range.
-  /if (${Spawn[pc ${ChatSender}].Distance} > 200) {
+  /if (${Spawn[pc =${ChatSender}].Distance} > 200) {
     /tell ${ChatSender} You're out of range!
     /return
   }

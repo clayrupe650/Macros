@@ -394,7 +394,7 @@ SUB check_Nukes
     /if (${Nukes2D[${castIndex},${iSpellType}].Find[Beneficial]}) {
       /if (${Target.ID} != ${AssistTarget}) /call TrueTarget ${AssistTarget}
       /if (${Select[${Me.TargetOfTarget.Class.ShortName},WAR,PAL,SHD]}) {
-        /if (${Spawn[pc ${Me.TargetOfTarget}].ID}) {
+        /if (${Spawn[pc =${Me.TargetOfTarget}].ID}) {
           /varset assistToT ${Me.TargetOfTarget.ID}
           /call check_Ready "Nukes2D" ${castIndex}
           /if (${c_Ready} && ${Nukes2D[${castIndex},${iIfs}]}) {

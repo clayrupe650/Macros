@@ -170,7 +170,7 @@ SUB check_Active
 		/if (${Defined[spellbook_Timer]}) /deletevar spellbook_Timer
 	}
 | Check Zoning
-  /if (!${SpawnCount[pc ${Me}]}) /varset activeTimer 5s
+  /if (!${SpawnCount[pc =${Me}]}) /varset activeTimer 5s
 /if (${Debug} || ${Debug_Background}) /echo <== check_Active -|
 /RETURN
 
@@ -283,7 +283,7 @@ SUB check_tribZone
 #event Set_tribZone "<#1#> Set tribute zone #2#"
 #event Set_tribZone "[#1#] Set tribute zone #2#"
 SUB event_Set_tribZone(line, chatSender, zoneSetting)
-  /if (${SpawnCount[pc ${chatSender}]} || !${Defined[chatSender]}) {
+  /if (${SpawnCount[pc =${chatSender}]} || !${Defined[chatSender]}) {
     /if (${zoneSetting.Equal[off]}  ) {
       /echo Tribute is turned [Off] for: ${Zone}
       /call WriteToIni "${tributeZones_Ini},${Zone.ShortName.Left[1]},${Zone.ShortName}" Off 1

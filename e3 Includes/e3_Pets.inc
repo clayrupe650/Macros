@@ -9,7 +9,7 @@ SUB check_Pets
   /if (${Debug} || ${Debug_Pets}) /echo Pets buffcheck ${BuffCheck} petid ${Me.Pet.ID} action !${ActionTaken} active !${activeTimer} pb ${Defined[petBuffs2D]} med !${medBreak} idle !${idle} pbc ${petBuffCombat} combat !${Me.Combat}
 	/if (!${ActionTaken} && !${suspend_Pets} && !${activeTimer} && !${rebuffTimer} && !${Me.Invis}) {
     /if (${Me.Pet.ID} && ${Defined[petHeal2D]}) /call check_petHeal
-    /if (!${Me.Pet.ID} && !${ActionTaken} && ${Defined[petSpell2D]} && ${SpawnCount[pc ${Me}]} && (${petSummonCombat} || ${Me.CombatState.NotEqual[COMBAT]})) /call summonPet
+    /if (!${Me.Pet.ID} && !${ActionTaken} && ${Defined[petSpell2D]} && ${SpawnCount[pc =${Me}]} && (${petSummonCombat} || ${Me.CombatState.NotEqual[COMBAT]})) /call summonPet
     /if (${BuffCheck} && ${Me.Pet.ID} && ${Defined[petBuffs2D]} && !${medBreak} && (${petBuffCombat} || ${Me.CombatState.NotEqual[COMBAT]}))	/call buffPet
     /if (${BuffCheck} && ${Me.Pet.ID} && ${petAutoShrink} && !${combatTimer}) /call check_AutoShrink
 	}

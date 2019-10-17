@@ -400,8 +400,8 @@ SUB EVENT_runThruZone(line, ChatSender, eventParams)
   /if (${line.Find[,]}) /varset line ${line.Left[${Math.Calc[${line.Find[,]}-1]}]} ${line.Right[-${line.Find[,]}]}
   /if (!${checkEventArgs[${ChatSender},${line},UZR,${eventParams}]}) /return
   /if (${c_eventArgChatSender.Equal[${Me}]}) /delay 2s
-  /declare locToStart string local ${Spawn[pc ${c_eventArgChatSender}].Loc}
-  /declare startHeading float local ${Spawn[pc ${c_eventArgChatSender}].Heading.Degrees}
+  /declare locToStart string local ${Spawn[pc =${c_eventArgChatSender}].Loc}
+  /declare startHeading float local ${Spawn[pc =${c_eventArgChatSender}].Heading.Degrees}
   /declare retryTimer timer local 7s
   /declare miscTimer timer local
   /declare startZone int local ${Zone.ID}
@@ -889,10 +889,10 @@ SUB EVENT_CountBots
 		/declare OutOfZoneCount int local
 		
 		/for i 1 to ${NetBots.Counts}
-			/if (!${SpawnCount[pc ${NetBots.Client[${i}]}]}) {
+			/if (!${SpawnCount[pc =${NetBots.Client[${i}]}]}) {
 				/varset OutOfZone ${OutOfZone}${NetBots.Client[${i}]},
 				/varcalc OutOfZoneCount ${OutOfZoneCount} + 1
-			} else /if (${SpawnCount[pc ${NetBots.Client[${i}]}]} && !${SpawnCount[pc ${NetBots.Client[${i}]} radius ${MaxResponseDist}]}) {
+			} else /if (${SpawnCount[pc =${NetBots.Client[${i}]}]} && !${SpawnCount[pc =${NetBots.Client[${i}]} radius ${MaxResponseDist}]}) {
 				/varset OutOfRange ${OutOfRange}${NetBots.Client[${i}]},
 				/varcalc OutOfRangeCount ${OutOfRangeCount} + 1
 			} else {
@@ -917,7 +917,7 @@ SUB EVENT_CountBots
 		/varset i 1
 		/echo [${OutOfRangeCount}] NetBots out of range:
 		:next_OutOfRange
-		/echo ----- ${OutOfRange.Arg[${i},,]}, ${Int[${Spawn[pc ${OutOfRange.Arg[${i},,]}].Distance}]} units away.
+		/echo ----- ${OutOfRange.Arg[${i},,]}, ${Int[${Spawn[pc =${OutOfRange.Arg[${i},,]}].Distance}]} units away.
 		/varcalc i ${i} + 1
 		/if (${OutOfRange.Arg[${i},,].Length}) /goto :next_OutOfRange
 		/echo ------------------------------------------

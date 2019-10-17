@@ -313,7 +313,7 @@ SUB event_run_Route(line, ChatSender, route_Name)
 /if (${Debug} || ${Debug_SmoothMoves}) /echo |- run_Route ==>
   /if (!${checkEventArgs[${ChatSender},${line},U,${route_Name}]}) /return
 		| If the ChatSender is in zone, or, if the command was issued through /echo.
-  /if (${SpawnCount[pc ${c_eventArgChatSender}]}) {
+  /if (${SpawnCount[pc =${c_eventArgChatSender}]}) {
     | Declare route variables.
     /declare i int local
     /declare currentDist float local
@@ -551,7 +551,7 @@ SUB click_Zone(locToStart, int startZone)
 			/goto :retry
 	|-----------------------------------------------------------------------------------------------Else, if I'm zoning, wait until I've finished.
 		} else /if (!${Zone.ID} || ${Zone.ID} != ${startZone}) {
-			/delay 2m ${SpawnCount[pc ${Me.CleanName}]} && ${Me.PctHPs}
+			/delay 2m ${SpawnCount[pc =${Me.CleanName}]} && ${Me.PctHPs}
 		}
 		/squelch /stick off
 	}

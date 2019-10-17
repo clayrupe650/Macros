@@ -163,11 +163,11 @@ SUB EVENT_set_TankList(line, ChatSender, tankList_Setting)
 		/declare i int local 1
 		:check_TankList
 		/if (${tankList_Setting.Arg[${i},,].Length}) {
-			/if (${SpawnCount[pc ${tankList_Setting.Arg[${i},,]}]}) {
+			/if (${SpawnCount[pc =${tankList_Setting.Arg[${i},,]}]}) {
 				/if (${Select[${tankList_Setting.Arg[${i},,]},${Chain_TankList}]}) {
 					/rs [${tankList_Setting.Arg[${i},,]}] is already on the tank list.
 				} else {
-					/varset Chain_TankList ${Chain_TankList}${Spawn[pc ${tankList_Setting.Arg[${i},,]}].CleanName},
+					/varset Chain_TankList ${Chain_TankList}${Spawn[pc =${tankList_Setting.Arg[${i},,]}].CleanName},
 				}
 			} else {
 				/rs #*# ERROR #*# Could not find pc [${tankList_Setting.Arg[${i},,]}] in ${Zone}.
@@ -360,11 +360,11 @@ SUB set_ChainTarget
 	:check_Chain_TankList
 	/if (${Chain_TankList.Arg[${i},,].Length}) {
 		| Check if the tank is in zone.
-		/if (${SpawnCount[pc ${Chain_TankList.Arg[${i},,]}]}) {
+		/if (${SpawnCount[pc =${Chain_TankList.Arg[${i},,]}]}) {
 			| Check tank range from the Chain_StartLoc.
-			/if (${Math.Distance[${Spawn[pc ${Chain_TankList.Arg[${i},,]}].Loc.Replace[ ,]}:${Chain_StartLoc}]} < 100) {
+			/if (${Math.Distance[${Spawn[pc =${Chain_TankList.Arg[${i},,]}].Loc.Replace[ ,]}:${Chain_StartLoc}]} < 100) {
 				| If the spawn is in zone, and in range, set Chain_Target.
-				/varset Chain_Target ${Spawn[pc ${Chain_TankList.Arg[${i},,]}].CleanName}
+				/varset Chain_Target ${Spawn[pc =${Chain_TankList.Arg[${i},,]}].CleanName}
 				/if (${Debug} || ${Debug_HealChain}) /echo |- set_ChainTarget -| Chain_Target= [${Chain_Target}].
 			} else {
 				/varcalc i ${i}+1
@@ -391,13 +391,13 @@ SUB set_NextHealer
 	| If e was set too high, reset to 1
 	/if (!${Chain_MemberList.Arg[${e},,].Length}) /varset e 1
 	| Check that the next healer is in zone
-	/if (${SpawnCount[pc ${Chain_MemberList.Arg[${e},,]}]}) {
+	/if (${SpawnCount[pc =${Chain_MemberList.Arg[${e},,]}]}) {
 		| Check the distance to the next healer
-		/if (${Math.Distance[${Spawn[pc ${Chain_Target}].Loc.Replace[ ,]}:${Spawn[pc ${Chain_MemberList.Arg[${e},,]}].Loc.Replace[ ,]}]} < 100) {
+		/if (${Math.Distance[${Spawn[pc =${Chain_Target}].Loc.Replace[ ,]}:${Spawn[pc =${Chain_MemberList.Arg[${e},,]}].Loc.Replace[ ,]}]} < 100) {
 			| If the healer is in zone, and in range, set next healer
 			/varset nextHealer ${Chain_MemberList.Arg[${e},,]}
 		} else {
-			/echo ${Spawn[pc ${Chain_MemberList.Arg[${e},,]}].CleanName} is out of range, checking for another healer...
+			/echo ${Spawn[pc =${Chain_MemberList.Arg[${e},,]}].CleanName} is out of range, checking for another healer...
 			/next i
 		}
 	} else {

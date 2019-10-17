@@ -35,7 +35,7 @@ SUB tankKill
         /if (${Bool[${npc}]}) {
           /varset tilde_loc ${Spawn[id ${npc}].CleanName.Find[`s pet]}
           /if (${tilde_loc} > 0) {
-            /if (${Spawn[pc ${Spawn[id ${npc}].CleanName.Left[${Math.Calc[${tilde_loc}-1].Int}]}].ID}) /goto :getTargetLoop
+            /if (${Spawn[pc =${Spawn[id ${npc}].CleanName.Left[${Math.Calc[${tilde_loc}-1].Int}]}].ID}) /goto :getTargetLoop
           }
           |/echo ${i} knpc ${killTarget} npc ${npc} ${Spawn[id ${npc}].CleanName} ${Spawn[id ${npc}].Type}
           /if (${killTarget}==${npc} || ${Bool[${Spawn[id ${npc}].Master}]}) {
