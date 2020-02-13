@@ -1,0 +1,85 @@
+| Ancient Checker - Barbatos
+| Usage: /mac ancients70
+| Based on your class. Will first check for missing spells.
+| Second will check for ancient muramite ruins in bag.
+
+Sub Main
+	/call CheckSpells
+	/delay 0
+	/mac e3
+/return
+
+Sub CheckSpells
+    /declare Ancients int local 0
+    /if (${Select[${Me.Class.ShortName},BER,MNK,ROG,WAR]}>0) /varset Ancients 0
+    /if (${Select[${Me.Class.ShortName},BRD,BST,PAL,RNG,SHD]}>0) /varset Ancients 1
+	/if (${Select[${Me.Class.ShortName},CLR,DRU,ENC,MAG,NEC,SHM,WIZ]}>0) /varset Ancients 2
+    
+	/declare SpellName string local
+	/declare SpellTwoName string local
+	/declare SpellNotFound int local 0	
+	
+	/if (${Me.Class.ShortName.Equal[BRD]}) /varset SpellName "Ancient: Call of Power"
+	
+	/if (${Me.Class.ShortName.Equal[BST]}) /varset SpellName "Ancient: Savage Ice"
+	
+	/if (${Me.Class.ShortName.Equal[CLR]}) /varset SpellName "Ancient: Hallowed Light"
+	/if (${Me.Class.ShortName.Equal[CLR]}) /varset SpellTwoName "Ancient: Pious Conscience"
+	
+	/if (${Me.Class.ShortName.Equal[DRU]}) /varset SpellName "Ancient: Chlorobon"
+	/if (${Me.Class.ShortName.Equal[DRU]}) /varset SpellTwoName "Ancient: Glacier Frost"
+	
+	/if (${Me.Class.ShortName.Equal[ENC]}) /varset SpellName "Ancient: Voice of Muram"
+	/if (${Me.Class.ShortName.Equal[ENC]}) /varset SpellTwoName "Ancient: Neurosis"
+	
+	/if (${Me.Class.ShortName.Equal[MAG]}) /varset SpellName "Ancient: Nova Strike"
+	/if (${Me.Class.ShortName.Equal[MAG]}) /varset SpellTwoName "Ancient: Veil of Pyrilonus"
+	
+	/if (${Me.Class.ShortName.Equal[NEC]}) /varset SpellName "Ancient: Touch of Orshalik"
+	/if (${Me.Class.ShortName.Equal[NEC]}) /varset SpellTwoName "Ancient: Curse of Mori"
+	
+	/if (${Me.Class.ShortName.Equal[PAL]}) /varset SpellName "Ancient: Force of Jeron"
+	
+	/if (${Me.Class.ShortName.Equal[RNG]}) /varset SpellName "Ancient: North Wind"
+	
+	/if (${Me.Class.ShortName.Equal[SHD]}) /varset SpellName "Ancient: Bite of Muram"
+	
+	/if (${Me.Class.ShortName.Equal[SHM]}) /varset SpellName "Ancient: Wilslik's Mending"
+	/if (${Me.Class.ShortName.Equal[SHM]}) /varset SpellTwoName "Ancient: Ancestral Calling"
+	
+	/if (${Me.Class.ShortName.Equal[WIZ]}) /varset SpellName "Ancient: Core Fire"
+	/if (${Me.Class.ShortName.Equal[WIZ]}) /varset SpellTwoName "Ancient: Spear of Gelaqua"
+    
+	/if (${Ancients}==0) /echo There are no ancients for my class ${Me.Class}
+	
+	/if (${Ancients}>0) {
+		/echo Seeking: ${SpellName}
+		/if (${Me.CombatAbility[${SpellName}]}) /echo I have tome: ${SpellName}
+		/if (${Me.Book[${SpellName}]}) /echo I have in book: ${SpellName}
+		/if (${FindItemCount[${SpellName}]}) /echo I have the spell in bag : ${SpellName}
+		/if (!${Me.CombatAbility[${SpellName}]} && !${Me.Book[${SpellName}]} && !${FindItemCount[${SpellName}]}) {
+				/echo Did not Find: ${SpellName}
+				/varset SpellNotFound 1
+			}
+	}
+	/if (${Ancients}==2) {
+		/echo Seeking: ${SpellTwoName}
+		/if (${Me.CombatAbility[${SpellTwoName}]}) /echo I have tome: ${SpellTwoName}
+		/if (${Me.Book[${SpellTwoName}]}) /echo I have in book: ${SpellTwoName}
+		/if (${FindItemCount[${SpellTwoName}]}) /echo I have the spell in bag : ${SpellTwoName}
+		/if (!${Me.CombatAbility[${SpellTwoName}]} && !${Me.Book[${SpellTwoName}]} && !${FindItemCount[${SpellTwoName}]}) {
+				/echo Did not Find: ${SpellTwoName}
+				/if (${SpellNotFound}) /varset SpellNotFound 2
+				/if (!${SpellNotFound}) /varset SpellNotFound 1
+			}
+	}
+	/if (!${SpellNotFound} && ${FindItemCount[Ancient Muramite Rune]}) /bc [+o+] I have [+p+]${FindItemCount[Ancient Muramite Rune]} [+y+] Ancient Muramite Runes [+o+] in bag. >> DESTROY THEM ALL<<
+	/delay 1s
+	/if (${SpellNotFound} && ${SpellNotFound}>${FindItemCount[Ancient Muramite Rune]}) /bc [+R+] I have [+p+]${FindItemCount[Ancient Muramite Rune]} of ${SpellNotFound} [+y+] Ancient Muramite Runes [+R+] in bag. [+Y+]>[+R+]>[+Y+]>[+R+]>[+Y+] I NEED MORE [+R+]<[+Y+]<[+R+]<[+Y+]<
+	/delay 1s
+	/if (${SpellNotFound} && ${SpellNotFound}==${FindItemCount[Ancient Muramite Rune]}) /bc [+O+]I have [+p+]${FindItemCount[Ancient Muramite Rune]} of ${SpellNotFound} [+y+] Ancient Muramite Runes [+O+] in bag. >> GO TURNIN!<<
+	/delay 1s
+	/if (${SpellNotFound} && ${SpellNotFound}<${FindItemCount[Ancient Muramite Rune]}) /bc [+g+] I have [+p+]${FindItemCount[Ancient Muramite Rune]} of ${SpellNotFound} [+y+] Ancient Muramite Runes [+g+] in bag. >> AFTER TURNINS, I HAVE EXTRA <<
+	/delay 1s
+	/if (!${SpellNotFound} && !${FindItemCount[Ancient Muramite Rune]}) /bc [+G+] PERFECT! I have all spells, no extra runes.
+/return

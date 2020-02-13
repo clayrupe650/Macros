@@ -1,0 +1,60 @@
+| Ancient Checker - Barbatos
+
+| Usage: /mac ancients65
+| Based on your class. Will first check for missing spells.
+| Second will check for Chaos Runes in bag.
+	|---SEE http://everquest.allakhazam.com/db/quest.html?quest=2866 ---|
+
+Sub Main
+	/call CheckSpells
+	/delay 0
+	/mac e3
+/return
+
+Sub CheckSpells
+		/declare ChaosAncients int local 0
+		/if (${Select[${Me.Class.ShortName},SHD,RNG,CLR,BRD,DRU,ENC,MAG,SHM,PAL,BST,NEC,WIZ]}>0) /varset ChaosAncients 1
+		/if (${Select[${Me.Class.ShortName},WAR,ROG,BER,MNK]}>0) /varset ChaosAncients 1
+    /declare SpellName string local
+	/declare SpellNotFound int local 0
+		/if (${Me.Class.ShortName.Equal[BRD]}) /varset SpellName "Ancient: Chaos Chant"
+		/if (${Me.Class.ShortName.Equal[BST]}) /varset SpellName "Ancient: Frozen Chaos"
+		/if (${Me.Class.ShortName.Equal[CLR]}) /varset SpellName "Ancient: Chaos Censure"
+		/if (${Me.Class.ShortName.Equal[DRU]}) /varset SpellName "Ancient: Chaos Frost"
+		/if (${Me.Class.ShortName.Equal[ENC]}) /varset SpellName "Ancient: Chaos Madness"
+		/if (${Me.Class.ShortName.Equal[MAG]}) /varset SpellName "Ancient: Chaos Vortex"
+		/if (${Me.Class.ShortName.Equal[NEC]}) /varset SpellName "Ancient: Seduction of Chaos"
+		/if (${Me.Class.ShortName.Equal[PAL]}) /varset SpellName "Ancient: Force of Chaos"
+		/if (${Me.Class.ShortName.Equal[RNG]}) /varset SpellName "Ancient: Burning Chaos"
+		/if (${Me.Class.ShortName.Equal[SHD]}) /varset SpellName "Ancient: Bite of Chaos"
+		/if (${Me.Class.ShortName.Equal[SHM]}) /varset SpellName "Ancient: Chaotic Pain"
+		/if (${Me.Class.ShortName.Equal[WIZ]}) /varset SpellName "Ancient: Strike of Chaos"
+    
+	/echo Seeking: ${SpellName}
+	|CHECK TOMES
+	|/if (${Me.CombatAbility[${SpellName}]}) /bc [+T+] I have tome: ${SpellName}
+	/if (${Me.CombatAbility[${SpellName}]}) /echo I have tome: ${SpellName}
+	|CHECK SPELLS	
+	|/if (${Me.Book[${SpellName}]}) /bc [+T+] I have spell: ${SpellName}
+	/if (${Me.Book[${SpellName}]}) /echo I have spell: ${SpellName}
+	|CHECK BAGS
+	|/if (${FindItemCount[${SpellName}]}) /bc [+T+] I have the in bag : ${SpellName}
+	/if (${FindItemCount[${SpellName}]}) /echo I have in bag : ${SpellName}
+	|NOT FOUND COUNT
+	/if (!${Me.CombatAbility[${SpellName}]} && !${Me.Book[${SpellName}]} && !${FindItemCount[${SpellName}]}) {
+				|/bc [+Y+] Did not Find: ${SpellName}
+				/echo Did not Find: ${SpellName}
+				/varset SpellNotFound 1
+			}
+	|COUNT RUNES AND REPORT
+	|DELAYS ADDED TO HELP GROUP RESULTS.
+	/if (!${SpellNotFound} && ${FindItemCount[Chaos Rune]}) /bc [+o+] I have [+p+]${FindItemCount[Chaos Rune]} [+y+] Chaos Runes [+o+] in bag. >> DESTROY THEM ALL<<
+	/delay 1s
+	/if (!${SpellNotFound} && !${FindItemCount[Chaos Rune]}) /bc [+G+] PERFECT! I have all spells, no extra runes.
+	/delay 1s
+	/if (${SpellNotFound} && ${SpellNotFound}>${FindItemCount[Chaos Rune]}) /bc [+R+] I have [+p+]${FindItemCount[Chaos Rune]} of ${SpellNotFound} [+y+] Chaos Runes [+R+] in bag. [+Y+]>[+R+]>[+Y+]>[+R+]>[+Y+] I NEED MORE [+R+]<[+Y+]<[+R+]<[+Y+]<
+	/delay 1s
+	/if (${SpellNotFound} && ${SpellNotFound}==${FindItemCount[Chaos Rune]}) /bc [+O+]I have [+p+]${FindItemCount[Chaos Rune]} of ${SpellNotFound} [+y+] Chaos Runes [+O+] in bag. >> GO TURNIN!<<
+	/delay 1s
+	/if (${SpellNotFound} && ${SpellNotFound}<${FindItemCount[Chaos Rune]}) /bc [+g+] I have [+p+]${FindItemCount[Chaos Rune]} of ${SpellNotFound} [+y+] Chaos Runes [+g+] in bag. >> EVEN AFTER TURNINS, HAVE EXTRA <<
+/return
