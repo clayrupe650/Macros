@@ -1,0 +1,752 @@
+| FOR PEQ USE | DO NOT AFK PLAY!!! |
+
+| DIRECTION: Find a safe place in zone other than Pok, Guild Lobby, Guild Hall or Bazaar,  <--- LOOKIE <--- IMPORTANT! 
+| Please save your current spell set as Main
+| REQUIRES: spell_routines.inc 
+| I heavily modified these files, customized, and added my own stuff to them!
+| Default Actions this script does.
+
+| Maxes out All Spell Types
+| Auto Sets your Specializations
+| Maxes out your Bard Instruments.
+| Maxes out your Tracking
+| Maxes out your Hide
+| Maxes out your Sneaking
+| Maxes out your Feign Death
+
+| TO DO: Add Secondary Spell Specialization Training
+| TO DO: Add Language Training to this list as well.
+
+#turbo 40
+#include spell_routines.inc
+#Event SkillUp "You have become better at #1#! (#2#)"
+#Event MedUp "Insufficient Mana to cast this spell!#*#" 
+
+Sub Main
+/delay 1
+/echo \ar DO NOT RUN IN POK, Guildlobby, Guildhall, Nexus, or Bazaar.
+/echo \ar Please have ALL of your spells!
+/echo \ar DO NOT MANUALLY PICKUP ITEMS WHILE USING THIS.
+/echo \ar MACRO HAS SEVERAL /DESTROY  commands built in.
+/echo \ar YOU WILL LOSE YOUR ITEMS!
+/echo \ar TO STOP.  /ENDMACRO
+/echo \ag Training Skills - Spells, Songs, Track, Hide, Sneak, Feign Death, Drinking <Need Brandy or Summoned: Ale>
+
+|Stuff to Make it function
+	/call TrainerSetup
+|Setting up Songs / Spells
+	/if (${WorkSongs}) /call BardSetup
+	/if (${WorkSongs}) /call BardMem	
+	/if (${WorkSpells}) /call SpellsSetup
+	/if (${WorkSpells}) /call SpellsMem
+|Before We Start - Make a pet
+	/if (${CheckForPet}  && !${Me.Pet.ID}) /call MakeAPet
+	/cleanup
+|Setting up Skills
+	/if (${WorkSneak}) /call SneakSkillSetup
+	/if (${WorkHide}) /call HideSkillSetup
+	/if (${WorkDrunk}) /call DrunkSkillSetup
+	/if (${WorkDead}) /call DeadSkillSetup
+	/if (${WorkTrack}) /call TrackingSkillSetup
+	
+	
+	:MainLoop
+	/call ZoneCheck
+	|See if anything is done
+        /if (${WorkSpells}) /call SpellsFinish
+		/if (${WorkSongs}) /call SongsFinish
+		/if (${WorkTrack}) /call TrackingFinish
+		/if (${WorkSneak}) /call SneakFinish
+		/if (${WorkHide}) /call HideFinish
+		/if (${WorkDead}) /call DeadFinish
+		/if (${WorkDrunk}) /call DrunkFinish
+	|CheckPets	
+		/if (${Me.Pet.CleanName.Equal[${Me.Name}`s familiar]} && ${Me.Class.ShortName.Equal[Wiz]}) /pet get lost
+		/if (${CheckForPet} && !${Me.Pet.ID}) /call MakeAPet
+	|Spells
+		/if (${WorkSpells} && ${Me.PctMana}<=10) /call Event_MedUp		
+        /if (${WorkSpells}) /call SpellsCast
+	|Songs
+		/if (${WorkSongs}) /call BardTwist
+	|Tracking - Make Sure its still open
+		/if (${WorkTrack} && ${Me.AbilityReady[Tracking]}) /call DoTrack
+	|Sneaking
+		/if (${WorkSneak} && ${Me.AbilityReady[Sneak]}) /call DoSneak
+	|Hide
+		/if (${WorkHide} && ${Me.AbilityReady[Hide]}) /call DoHide
+	|Feign Death
+		/if (${WorkDead} && ${Me.AbilityReady[Feign Death]}) /call FeignMe
+	|Drinking - Once I have finished up my Spells/Songs ... I can start drinking
+		/if ((!${WorkSongs} || !${WorkSpells}) && ${WorkDrunk}) /call GetDrunk
+	|Clear my cursor!
+		/if (${Cursor.ID}>0) {
+			/call ItemCheck
+			/call ItemCheck
+			/call ItemCheck
+			/delay 3
+		}
+		/call CursorClean
+  
+        /doevents
+		/if (!${WorkSongs} && !${WorkDead} && !${WorkDrunk} && !${WorkSpells} && !${WorkSneak} && !${WorkTrack} && !${WorkHide} && !${Cursor.ID}) /call WeAreDone
+		/delay 5s
+		/goto :MainLoop
+/return
+
+Sub TrainerSetup
+/declare CurrentZone            int             outer   ${Zone.ID}
+/declare CheckForPet 			bool 			outer 	FALSE
+/declare WorkSpells 			bool 			outer 	FALSE
+/declare WorkSongs 				bool 			outer 	FALSE
+/declare WorkTrack 				bool 			outer 	FALSE
+/declare WorkHide 				bool 			outer 	FALSE
+/declare WorkSneak 				bool 			outer 	FALSE
+/declare WorkDrunk 				bool 			outer 	FALSE
+/declare WorkDead				bool			outer	FALSE
+
+/if (${Me.Skill[Tracking]} < ${Skill[Tracking].SkillCap}) /varset WorkTrack TRUE
+/if (${Me.Skill[Tracking]}==0 && ${WorkTrack}) {
+	/varset WorkTrack FALSE
+	/bc [+R+] GO TRAIN YOUR TRACKING SKILL TO GET 1 POINT
+}
+/if (${Me.Skill[Hide]} < ${Skill[Hide].SkillCap}) /varset WorkHide TRUE
+/if (${Me.Skill[Hide]}==0 && ${WorkHide}) {
+	/varset WorkHide FALSE
+	/bc [+R+] GO TRAIN YOUR HIDING SKILL TO GET 1 POINT
+}
+/if (${Me.Skill[Sneak]} < ${Skill[Sneak].SkillCap}) /varset WorkSneak TRUE
+/if (${Me.Skill[Sneak]}==0 && ${WorkSneak}) {
+	/varset WorkSneak FALSE
+	/bc [+R+] GO TRAIN YOUR SNEAK SKILL TO GET 1 POINT
+}
+/if (${Me.Skill[Alcohol Tolerance]} < ${Skill[Alcohol Tolerance].SkillCap}) /varset WorkDrunk TRUE
+/if (${Me.Skill[Feign Death]} < ${Skill[Feign Death].SkillCap}) /varset WorkDead TRUE
+/if (${Select[${Me.Class.ShortName},BST,ENC,MAG,NEC,SHD]}>=1) /varset CheckForPet TRUE
+/if (${Select[${Me.Class.Name},Warrior,Berserker,Monk,Rogue,Bard]}==0) /varset WorkSpells TRUE
+/if (${Me.Class.ShortName.Equal[BRD]}) /varset WorkSongs TRUE
+/return
+|------------------------------------------------------------------------------------------------------------------------------|
+|----------------------------------------------------- PET PREP SECT  ---------------------------------------------------------|
+|------------------------------------------------------------------------------------------------------------------------------|
+
+
+Sub MakeAPet
+	/declare NoobPetSpell string local NULL
+		/if (${Me.Class.ShortName.Equal[BST]}) /varset NoobPetSpell "Spirit of Sharik"
+		|L8 Summon Warder
+		/if (${Me.Class.ShortName.Equal[ENC]}) /varset NoobPetSpell "Pendril's Animation"
+		|L1 Summon Animation
+		/if (${Me.Class.ShortName.Equal[MAG]}) /varset NoobPetSpell Elementalkin Water
+		|L2 Summon Pet
+		/if (${Me.Class.ShortName.Equal[NEC]}) /varset NoobPetSpell Cavorting Bones
+		|L1 Summon Skeleton
+		/if (${Me.Class.ShortName.Equal[SHD]}) /varset NoobPetSpell Leering Corpse
+		|L7 Summon Skeleton
+		/echo ${NoobPetSpell} : PET SPELL
+	/memorize "${NoobPetSpell}|6"
+	/delay 6s
+	/casting "${NoobPetSpell}|6" -maxtries|5
+	/delay 10s
+/return
+
+
+|------------------------------------------------------------------------------------------------------------------------------|
+| -----------------------------------------------------SPELLS SECTION ---------------------------------------------------------|
+|------------------------------------------------------------------------------------------------------------------------------|
+
+Sub SpellsSetup
+|Workaround Manually Setting the Caps
+	/declare i						int				local	0
+	/declare SkillAbjCap			int 			outer	310
+	/declare SkillAltCap			int 			outer	310
+	/declare SkillConCap			int 			outer	310
+	/declare SkillDivCap			int 			outer	310
+	/declare SkillEvoCap			int 			outer	310
+	/declare SkillName[5]           string          outer
+	/declare TrainSpell[16,7]    	string          outer     
+    /declare SpecSpam               int             outer   1 
+    /declare SpecIgnore             int             outer   0
+    /varset SkillName[1]         Abjuration
+    /varset SkillName[2]         Alteration
+    /varset SkillName[3]         Conjuration
+    /varset SkillName[4]         Divination
+    /varset SkillName[5]         Evocation
+|    CLERIC = 2
+    /varset TrainSpell[2,1]      Endure Poison
+    /varset TrainSpell[2,2]      Minor Healing
+    /varset TrainSpell[2,3]      Halo of Light
+    /varset TrainSpell[2,4]      True North
+    /varset TrainSpell[2,5]      Strike
+    /varset TrainSpell[2,6]      Summoned: Halo of Light
+    /varset TrainSpell[2,7]      Alteration
+|    PALADIN = 3
+    /varset TrainSpell[3,1]      Courage
+    /varset TrainSpell[3,2]      Salve
+    /varset TrainSpell[3,3]      Hammer of Wrath
+    /varset TrainSpell[3,4]      True North
+    /varset TrainSpell[3,5]      Cease
+    /varset TrainSpell[3,6]      Summoned: Hammer of Wrath  
+|    RANGER = 4
+    /varset TrainSpell[4,1]      Endure Fire
+    /varset TrainSpell[4,2]      Salve
+    /varset TrainSpell[4,3]      Dance of the Fireflies
+    /varset TrainSpell[4,4]      Glimpse
+    /varset TrainSpell[4,5]      Flame Lick
+    /varset TrainSpell[4,6]      Summoned: Firefly Globe
+|    SHADOW KNIGHT = 5
+    /varset TrainSpell[5,1]      Endure Cold
+    /varset TrainSpell[5,2]      Siphon Strength  
+    /varset TrainSpell[5,3]      Disease Cloud   
+    /varset TrainSpell[5,4]      Sense the Dead
+    /varset TrainSpell[5,5]      Ward Undead
+    /varset TrainSpell[2,6]      Summoned: Halo of Light
+|    DRUID = 6
+    /varset TrainSpell[6,1]      Skin like Wood
+    /varset TrainSpell[6,2]      Minor Healing
+    /varset TrainSpell[6,3]      Dance of the Fireflies
+    /varset TrainSpell[6,4]      Sense Animals
+    /varset TrainSpell[6,5]      Burst of Fire
+    /varset TrainSpell[6,6]      Summoned: Firefly Globe
+    /varset TrainSpell[6,7]      Alteration
+|    SHAMAN = 10
+    /varset TrainSpell[10,1]     Endure Cold
+    /varset TrainSpell[10,2]     Minor Healing
+    /varset TrainSpell[10,3]     Summon Drink
+    /varset TrainSpell[10,4]     True North
+    /varset TrainSpell[10,5]     Burst of Flame
+    /varset TrainSpell[10,6]     Summoned: Globe of Water
+	/varset TrainSpell[10,7]	 Alteration
+|    NECROMANCER = 11
+    /varset TrainSpell[11,1]     Minor Shielding
+    /varset TrainSpell[11,2]     Lifetap
+    /varset TrainSpell[11,3]     Coldlight
+    /varset TrainSpell[11,4]     True North
+    /varset TrainSpell[11,5]     Ward Undead
+    /varset TrainSpell[11,6]     Summoned: Coldlight
+    /varset TrainSpell[11,7]     Alteration
+|    WIZARD = 12
+    /varset TrainSpell[12,1]     Minor Shielding
+    /varset TrainSpell[12,2]     Root
+    /varset TrainSpell[12,3]     Halo of Light
+    /varset TrainSpell[12,4]     True North
+    /varset TrainSpell[12,5]     Frost Bolt
+    /varset TrainSpell[12,6]     Summoned: Halo of Light
+    /varset TrainSpell[14,7]     Evocation
+|    MAGICIAN = 13
+    /varset TrainSpell[13,1]     Minor Shielding
+    /varset TrainSpell[13,2]     Renew Elements
+    /varset TrainSpell[13,3]     Summon Brass Choker
+    /varset TrainSpell[13,4]     True North
+    /varset TrainSpell[13,5]     Burst of Flame
+    /varset TrainSpell[13,6]     Jedah's Brass Choker
+    /varset TrainSpell[13,7]     Conjuration
+|    ENCHANTER = 14
+    /varset TrainSpell[14,1]     Minor Shielding
+    /varset TrainSpell[14,2]     Strengthen
+    /varset TrainSpell[14,3]     Mesmerize
+    /varset TrainSpell[14,4]     True North
+    /varset TrainSpell[14,5]     Chaotic Feedback
+    /varset TrainSpell[14,6]     Summoned: Globe of Water
+    /varset TrainSpell[14,7]     Conjuration
+|    BEASTLORD = 15
+    /varset TrainSpell[15,1]     Endure Cold
+    /varset TrainSpell[15,2]     Salve
+    /varset TrainSpell[15,3]     Summon Drink
+    /varset TrainSpell[15,4]     Sense Animals
+    /varset TrainSpell[15,5]     Blast of Frost
+    /varset TrainSpell[15,6]     Summoned: Globe of Water
+	
+    /if (${Me.Skill[${SkillName[1]}]}<${SkillAbjCap}) /bc [+Y+] ${SkillName[1]}: ${Me.Skill[${SkillName[1]}]}/${SkillAbjCap} - Casting: * ${TrainSpell[${Me.Class.ID},1]} *
+	/if (${Me.Skill[${SkillName[2]}]}<${SkillAltCap}) /bc [+Y+] ${SkillName[2]}: ${Me.Skill[${SkillName[2]}]}/${SkillAltCap} - Casting: * ${TrainSpell[${Me.Class.ID},2]} *
+	/if (${Me.Skill[${SkillName[3]}]}<${SkillConCap}) /bc [+Y+] ${SkillName[3]}: ${Me.Skill[${SkillName[3]}]}/${SkillConCap} - Casting: * ${TrainSpell[${Me.Class.ID},3]} *
+	/if (${Me.Skill[${SkillName[4]}]}<${SkillDivCap}) /bc [+Y+] ${SkillName[4]}: ${Me.Skill[${SkillName[4]}]}/${SkillDivCap} - Casting: * ${TrainSpell[${Me.Class.ID},4]} *
+	/if (${Me.Skill[${SkillName[5]}]}<${SkillEvoCap}) /bc [+Y+] ${SkillName[5]}: ${Me.Skill[${SkillName[5]}]}/${SkillEvoCap} - Casting: * ${TrainSpell[${Me.Class.ID},5]} *
+    
+	/call SpecializationCheck
+ 
+	/if (${Me.Skill[Abjuration]} == ${SkillAbjCap}) /varcalc i ${i}+1
+	/if (${Me.Skill[Alteration]} == ${SkillAltCap}) /varcalc i ${i}+1
+	/if (${Me.Skill[Conjuration]} == ${SkillConCap}) /varcalc i ${i}+1
+	/if (${Me.Skill[Divination]} == ${SkillDivCap}) /varcalc i ${i}+1
+	/if (${Me.Skill[Evocation]} ==${SkillEvoCap}) /varcalc i ${i}+1
+    
+	/if (${i}==5) {
+			/memspellset Main
+            /varset WorkSpells FALSE
+            /echo \ag All SpellTypes are currently maxed. Ending SpellTraining.
+        }
+/return
+
+Sub SpecializationCheck
+    /declare i int local
+    /for i 1 to 5
+        /if (${Me.Skill[Specialize ${SkillName[${i}]}]}>50) {
+            /echo Detected Specialize ${SkillName[${i}]} is over 50 TURNING OFF Break Specialiazion Cap
+            /varset SpecIgnore 1
+            /return
+        }
+    /next i
+/return
+
+
+Sub SpellsMem
+    /declare i int local
+    /for i 1 to 5
+        /if (!${Me.Gem[${TrainSpell[${Me.Class.ID},${i}]}]}) {
+            /echo Memorizing Spell >> ${TrainSpell[${Me.Class.ID},${i}]} <<
+            /memspell ${i} "${TrainSpell[${Me.Class.ID},${i}]}"
+            /delay 25
+        }
+    /next i
+	/delay 3s
+	/cleanup
+/return
+
+
+Sub SpellsCast
+    /declare i int local
+    | - Check for pet class and target pets for spell casting.
+    /if (${Me.Pet.ID}) {
+        /target ${Me.Pet}
+        /delay 10
+    } else /if (${Select[${Me.Class.ShortName},BST,ENC,MAG,NEC,SHD]}>=1 && !${Me.Pet.ID}) {
+        /echo ${Me.Class}s should summon their pets for this macro.
+        /echo Summon your pet and restart this macro.
+		/beep
+		/delay 30s
+        /mac e3
+    } else /if (!${Me.Pet.ID}) {
+        /target id ${Me.ID}
+    }
+    /delay 10
+		/varset i 1
+        :SpecializeCapAbj
+        /doevents
+        |/if (${Me.Skill[Abjuration]} < ${SkillAbjCap}) /echo \ay Abjuration ${Me.Skill[Abjuration]} / ${SkillAbjCap}
+		/if (${Me.Skill[Abjuration]} == ${SkillAbjCap}) {
+			/goto :Alteration
+			}
+        /delay 1s 
+        /if (${Me.Skill[Abjuration]} < ${SkillAbjCap}) {
+            /casting "${TrainSpell[${Me.Class.ID},${i}]}|${i}"
+            |/echo Casting ${TrainSpell[${Me.Class.ID},${i}]} ${i}
+            /delay 2s
+        }
+        | - Check cursor for summoned items and destroy them.
+        /if (${Cursor.Name.Equal[${TrainSpell[${Me.Class.ID},6]}]}) {
+            /call ItemCheck
+            /delay 5s !${Cursor.ID}
+        }
+        /if (${Me.Skill[Specialize ${TrainSpell[${Me.Class.ID},7]}]}<=50 && ${SkillName[${i}].Equal[${TrainSpell[${Me.Class.ID},7]}]} && ${Select[${Me.Class.ShortName},CLR,DRU,ENC,MAG,NEC,SHM,WIZ]} && !${SpecIgnore}) {
+            /if (${SpecSpam}) {
+                /echo Casting ${TrainSpell[${Me.Class.ID},${i}]} until we BREAK 50 in Specialize Abjuration
+                /varset SpecSpam 0
+                /timed 300 /varset SpecSpam 1
+            }
+            /goto :SpecializeCapAbj
+        }
+        :Alteration
+		/varset i 2
+        :SpecializeCapAlt
+        /doevents
+		|/if (${Me.Skill[Alteration]} < ${SkillAbjCap}) /echo \ay Alteration ${Me.Skill[Alteration]} / ${SkillAbjCap}
+        /if (${Me.Skill[Alteration]} == ${SkillAbjCap}) {
+			/goto :Conjuration
+			}
+        /delay 1s 
+        /if (${Me.Skill[Alteration]} < ${SkillAltCap}) {
+            /casting "${TrainSpell[${Me.Class.ID},${i}]}|${i}"
+             |/echo Casting ${TrainSpell[${Me.Class.ID},${i}]} ${i}
+            /delay 2s
+        }
+        | - Check cursor for summoned items and destroy them.
+        /if (${Cursor.Name.Equal[${TrainSpell[${Me.Class.ID},6]}]}) {
+            /call ItemCheck
+            /delay 5s !${Cursor.ID}
+        }
+        /if (${Me.Skill[Specialize ${TrainSpell[${Me.Class.ID},7]}]}<=50 && ${SkillName[${i}].Equal[${TrainSpell[${Me.Class.ID},7]}]} && ${Select[${Me.Class.ShortName},CLR,DRU,ENC,MAG,NEC,SHM,WIZ]} && !${SpecIgnore}) {
+            /if (${SpecSpam}) {
+                |/echo Casting ${TrainSpell[${Me.Class.ID},${i}]} until we BREAK 50 in Specialize Alteration
+                /varset SpecSpam 0
+                /timed 300 /varset SpecSpam 1
+            }
+            /goto :SpecializeCapAlt
+        }
+        :Conjuration
+        /varset i 3
+		:SpecializeCapCon
+        /doevents
+        |/if (${Me.Skill[Conjuration]} < ${SkillConCap}) /echo \ay Conjuration ${Me.Skill[Conjuration]} / ${SkillConCap}
+        /if (${Me.Skill[Conjuration]} == ${SkillConCap}) {
+			/goto :Divination
+			}
+        /delay 1s 
+        /if (${Me.Skill[Conjuration]} < ${SkillConCap}) {
+            /casting "${TrainSpell[${Me.Class.ID},${i}]}|${i}"
+            |/echo /casting "${TrainSpell[${Me.Class.ID},${i}]}|${i}"
+            /delay 2s
+        }
+        | - Check cursor for summoned items and destroy them.
+        /if (${Cursor.Name.Equal[${TrainSpell[${Me.Class.ID},6]}]}) {
+            /call ItemCheck
+            /delay 5s !${Cursor.ID}
+        }
+        /if (${Me.Skill[Specialize ${TrainSpell[${Me.Class.ID},7]}]}<=50 && ${SkillName[${i}].Equal[${TrainSpell[${Me.Class.ID},7]}]} && ${Select[${Me.Class.ShortName},CLR,DRU,ENC,MAG,NEC,SHM,WIZ]} && !${SpecIgnore}) {
+            /if (${SpecSpam}) {
+                |/echo Casting ${TrainSpell[${Me.Class.ID},${i}]} until we BREAK 50 in Specialize Conjuration
+                /varset SpecSpam 0
+                /timed 300 /varset SpecSpam 1
+            }
+            /goto :SpecializeCapCon
+        }
+        :Divination
+		/varset i 4
+        :SpecializeCapDiv
+        /doevents
+		|/if (${Me.Skill[Divination]} < ${SkillDivCap}) /echo \ay Divination ${Me.Skill[Divination]} / ${SkillDivCap}
+        /if (${Me.Skill[Divination]} == ${SkillDivCap}) {
+			/goto :Evocation
+			}
+
+        /delay 1s 
+        /if (${Me.Skill[Divination]} < ${SkillDivCap}) {
+            /casting "${TrainSpell[${Me.Class.ID},${i}]}|${i}"
+            |/echo /casting "${TrainSpell[${Me.Class.ID},${i}]}|${i}"
+            /delay 2s
+        }
+        | - Check cursor for summoned items and destroy them.
+        /if (${Cursor.Name.Equal[${TrainSpell[${Me.Class.ID},6]}]}) {
+            /call ItemCheck
+            /delay 5s !${Cursor.ID}
+        }
+        /if (${Me.Skill[Specialize ${TrainSpell[${Me.Class.ID},7]}]}<=50 && ${SkillName[${i}].Equal[${TrainSpell[${Me.Class.ID},7]}]} && ${Select[${Me.Class.ShortName},CLR,DRU,ENC,MAG,NEC,SHM,WIZ]} && !${SpecIgnore}) {
+            /if (${SpecSpam}) {
+                |/echo Casting ${TrainSpell[${Me.Class.ID},${i}]} until we BREAK 50 in Specialize Divination
+                /varset SpecSpam 0
+                /timed 300 /varset SpecSpam 1
+            }
+            /goto :SpecializeCapDiv
+        }
+        :Evocation
+		/varset i 5
+        :SpecializeCapEvo
+        /doevents
+        |/if (${Me.Skill[Evocation]} < ${SkillAbjCap}) /echo \ay Evocation ${Me.Skill[Evocation]} / ${SkillAbjCap}
+        /if (${Me.Skill[Evocation]} == ${SkillAbjCap}) {
+			/goto :SpellsDone
+			}
+        
+        /if (${Select[${Me.Class.ShortName},BST,ENC,MAG,NEC,SHD]} && ${Me.Pet.ID} && ${i}==5 && ${Target.ID}!=${Me.Pet.ID}) {
+            /target pet ${Me.Pet}
+        } else /if (!${Me.Pet.ID} && ${Target.ID}!=${Me.ID} && ${i}==5) {
+            /target id ${Me.ID}
+        }
+        /delay 1s 
+        /if (${Me.Skill[Evocation]} < ${SkillEvoCap}) {
+            /casting "${TrainSpell[${Me.Class.ID},${i}]}|${i}"
+             |/echo Casting ${TrainSpell[${Me.Class.ID},${i}]} ${i}
+            /delay 2s
+        }
+        | - Check cursor for summoned items and destroy them.
+        /if (${Cursor.Name.Equal[${TrainSpell[${Me.Class.ID},6]}]}) {
+            /call ItemCheck
+            /delay 5s !${Cursor.ID}
+        }
+        /if (${Me.Skill[Specialize ${TrainSpell[${Me.Class.ID},7]}]}<=50 && ${SkillName[${i}].Equal[${TrainSpell[${Me.Class.ID},7]}]} && ${Select[${Me.Class.ShortName},CLR,DRU,ENC,MAG,NEC,SHM,WIZ]} && !${SpecIgnore}) {
+            /if (${SpecSpam}) {
+                |/echo Casting ${TrainSpell[${Me.Class.ID},${i}]} until we BREAK 50 in Specialize Evocation
+                /varset SpecSpam 0
+                /timed 300 /varset SpecSpam 1
+            }
+            /goto :SpecializeCapEvo
+        }
+        :SpellsDone
+/return
+
+Sub Event_SkillUp(S0,S1,S2)
+    /bc [+t+] >> Your ${S1} skill is now ${S2} out of ${Skill[${S1}].SkillCap}. <<
+/return
+
+Sub Event_MedUp
+    /echo Out of mana medding up.
+    /if (!${Me.Mount.ID} && !${Me.Sitting}) /sit
+    :med
+        /delay 10
+    /if (${Me.PctMana}<100) /goto :med
+    /if (!${Me.Mount.ID} && ${Me.Sitting}) /stand
+/return
+
+Sub SpellsFinish
+    /declare i int local 0
+        /if (${Me.Skill[Abjuration]} == ${SkillAbjCap}) /varcalc i ${i}+1
+		/if (${Me.Skill[Alteration]} == ${SkillAltCap}) /varcalc i ${i}+1
+		/if (${Me.Skill[Conjuration]} == ${SkillConCap}) /varcalc i ${i}+1
+		/if (${Me.Skill[Divination]} == ${SkillDivCap}) /varcalc i ${i}+1
+		/if (${Me.Skill[Evocation]} ==${SkillEvoCap}) /varcalc i ${i}+1
+    
+		/if (${i}==5) {
+			/memspellset Main
+            /echo \ag All SpellTypes are currently maxed. Ending SpellTraining.
+            /varset WorkSpells FALSE
+        }
+/return
+
+|------------------------------------------------------------------------------------------------------------------------------|
+|-------------------------------------------------------SONGS SECTION----------------------------------------------------------|
+|------------------------------------------------------------------------------------------------------------------------------|
+
+Sub BardSetup
+   /declare numbers string outer
+   /declare i int local 0
+	/if (${Me.Sitting}) /stand
+	/if (${Me.Skill[Singing]}==${Skill[Singing].SkillCap}) /varcalc i ${i}+1
+	/if (${Me.Skill[Brass Instruments]}==${Skill[Brass Instruments].SkillCap}) /varcalc i ${i}+1
+	/if (${Me.Skill[Percussion Instruments]}==${Skill[Percussion Instruments].SkillCap}) /varcalc i ${i}+1
+	/if (${Me.Skill[Stringed Instruments]}==${Skill[Stringed Instruments].SkillCap}) /varcalc i ${i}+1
+	/if (${Me.Skill[Wind Instruments]}==${Skill[Wind Instruments].SkillCap}) /varcalc i ${i}+1
+	
+	/if (${i}==5) {
+			/memspellset Main
+			/varset WorkSongs FALSE
+            /echo \ag All InstrumentTypes are currently maxed. Ending SongTraining
+        }
+/return
+
+Sub BardMem
+/if (${Me.Skill[Singing]} < ${Skill[Singing].SkillCap}) {
+        | Singing: L01 Chant of Battle
+        /memorize "Chant of Battle|1"
+        /varset numbers ${numbers} 1
+        /bc [+y+]BARD train Singing ${Me.Skill[Singing]}/${Skill[Singing].SkillCap} - | Singing: L01 Chant of Battle
+        /delay 6s
+    }
+    /if (${Me.Skill[Brass Instruments]} < ${Skill[Brass Instruments].SkillCap}) {
+        | Brass: L42 McVaxius' Berserker Crescendo (lowest non-detrimental song)
+        /memorize "McVaxius' Berserker Crescendo|2"
+        /varset numbers ${numbers} 2
+        /bc [+y+]BARD train Brass ${Me.Skill[Brass Instruments]}/${Skill[Brass Instruments].SkillCap} | Brass: L42 McVaxius' Berserker Crescendo
+        /delay 6s
+    }
+
+    /if (${Me.Skill[Percussion Instruments]} < ${Skill[Percussion Instruments].SkillCap}) {
+        | Percussion: L03 Jaxan's Jig o' Vigor
+        /memorize "Jaxan's Jig o' Vigor|3"
+        /varset numbers ${numbers} 3
+        /bc [+y+]BARD train Percussion ${Me.Skill[Percussion Instruments]}/${Skill[Percussion Instruments].SkillCap} | Percussion: L03 Jaxan's Jig o' Vigor
+        /delay 6s
+    }
+    /if (${Me.Skill[Stringed Instruments]} < ${Skill[Stringed Instruments].SkillCap}) {
+        | Stringed: L06 Hymn of Restoration
+        /memorize "Hymn of Restoration|4"
+        /varset numbers ${numbers} 4
+        /bc [+y+]BARD train Stringed ${Me.Skill[Stringed Instruments]}/${Skill[Stringed Instruments].SkillCap} | Stringed: L06 Hymn of Restoration
+        /delay 6s
+    }
+    /if (${Me.Skill[Wind Instruments]} < ${Skill[Wind Instruments].SkillCap}) {
+        | Wind: L16 Tarew's Aquatic Ayre
+        /memorize "Tarew's Aquatic Ayre|5"
+        /varset numbers ${numbers} 5
+        /bc [+y+]BARD train Wind ${Me.Skill[Wind Instruments]}/${Skill[Wind Instruments].SkillCap} | Wind: L16 Tarew's Aquatic Ayre
+        /delay 6s
+    }
+/return
+
+Sub SongsFinish
+	/varset numbers 0
+	/if (${Me.Skill[Singing]} < ${Skill[Singing].SkillCap}) /varset numbers ${numbers} 1
+    /if (${Me.Skill[Brass Instruments]} < ${Skill[Brass Instruments].SkillCap}) /varset numbers ${numbers} 2
+    /if (${Me.Skill[Percussion Instruments]} < ${Skill[Percussion Instruments].SkillCap}) /varset numbers ${numbers} 3
+    /if (${Me.Skill[Stringed Instruments]} < ${Skill[Stringed Instruments].SkillCap}) /varset numbers ${numbers} 4
+    /if (${Me.Skill[Wind Instruments]} < ${Skill[Wind Instruments].SkillCap}) /varset numbers ${numbers} 5
+	/if (${numbers} == 0) {
+		/twist off
+		/echo \ag All SongTypes are currently maxed. Ending SongTraining.
+		/varset WorkSongs FALSE
+		}
+/return
+	
+Sub BardTwist
+    /twist ${numbers}
+	/delay 30s
+/return
+|--------------------------------------------------------------------------------------------|
+|---------------------------------------TRACK STUFFS----------------------------------------|
+|--------------------------------------------------------------------------------------------|
+Sub TrackingSkillSetup
+/if (${Me.Skill[Tracking]}==${Skill[Tracking].SkillCap}) /varset WorkTrack FALSE
+/if (${Me.Skill[Tracking]} < ${Skill[Tracking].SkillCap}) {
+	/bc [+Y+] Tracking NOT Maxed-Out!  : ${Me.Skill[Tracking]} of ${Skill[Tracking].SkillCap}
+	/deability Track
+	}
+/delay 1s
+/return
+
+Sub TrackingFinish
+|Notify on Tracking - Skill Maxed 
+/if ((${Me.Skill[Tracking]} == ${Skill[Tracking].SkillCap})) {
+	/bc [+G+] Tracking Maxed Out!  : ${Me.Skill[Tracking]}
+	/cleanup
+	/varset WorkTrack FALSE
+	}
+/return
+
+Sub DoTrack
+	|Probably need to Add something to see if its already open.
+	/doability tracking
+/return
+|--------------------------------------------------------------------------------------------|
+|---------------------------------------SNEAK STUFFS----------------------------------------|
+|--------------------------------------------------------------------------------------------|
+Sub SneakSkillSetup
+/if (${Me.Skill[Sneak]}==${Skill[Sneak].SkillCap}) /varset WorkSneak FALSE
+/if (${Me.Skill[Sneak]}<${Skill[Sneak].SkillCap}) /bc [+Y+] Sneak NOT Maxed-Out!  : ${Me.Skill[Sneak]} of ${Skill[Sneak].SkillCap}
+/delay 1s
+/return
+
+Sub SneakFinish
+|Notify on Sneak - Skill Maxed 
+/if ((${Me.Skill[Sneak]}==${Skill[Sneak].SkillCap})) {
+	/bc [+G+] Sneak Maxed Out!  : ${Me.Skill[Sneak]}
+	/varset WorkSneak FALSE
+	}
+/return
+
+Sub DoSneak
+/if ((${Me.Skill[Sneak]}<${Skill[Sneak].SkillCap})) {
+	/doability Sneak
+	/delay 1s
+	/makemevisible
+	}
+/return
+|--------------------------------------------------------------------------------------------|
+|---------------------------------------HIDE STUFFS----------------------------------------|
+|--------------------------------------------------------------------------------------------|
+Sub HideSkillSetup
+/if (${Me.Skill[Hide]}==${Skill[Hide].SkillCap}) /varset WorkHide FALSE
+/if (${Me.Skill[Hide]} < ${Skill[Hide].SkillCap}) /bc [+Y+] HIDE NOT Maxed-Out!  : ${Me.Skill[Hide]} of ${Skill[Hide].SkillCap}
+/delay 1s
+/return
+
+Sub HideFinish
+|Notify on Hide - Skill Maxed 
+/if ((${Me.Skill[Hide]}==${Skill[Hide].SkillCap})) {
+	/bc [+G+] Hide Maxed Out!  : ${Me.Skill[Hide]}
+	/varset WorkHide FALSE
+	}
+/return
+Sub DoHide
+/if ((${Me.Skill[Hide]}<${Skill[Hide].SkillCap})) {
+	/doability Hide
+	/delay 1s
+	/makemevisible
+	}
+/return
+|--------------------------------------------------------------------------------------------|
+|---------------------------------------DEADS STUFFS----------------------------------------|
+|--------------------------------------------------------------------------------------------|
+Sub DeadSkillSetup
+/if (${Me.Skill[Feign Death]}==${Skill[Feign Death].SkillCap}) /varset WorkDead FALSE
+/if (${Me.Skill[Feign Death]} < ${Skill[Feign Death].SkillCap}) /bc [+Y+] FEIGN DEATH NOT Maxed-Out!  : ${Me.Skill[Feign Death]} of ${Skill[Feign Death].SkillCap}
+/delay 1s
+/return
+
+Sub DeadFinish
+|Notify on Feign Death - Skill Maxed 
+/if ((${Me.Skill[Feign Death]}==${Skill[Feign Death].SkillCap})) {
+	/bc [+G+] Feign Death now Maxed Out!  : ${Me.Skill[Feign Death]}
+	/varset WorkDead FALSE
+	}
+/return
+
+Sub FeignMe
+/doability "Feign Death"
+/delay 3s
+/if (!${Standing}) /stand
+/return
+|--------------------------------------------------------------------------------------------|
+|---------------------------------------DRUNK STUFFS----------------------------------------|
+|--------------------------------------------------------------------------------------------|
+Sub DrunkSkillSetup
+/if (${Me.Skill[Alcohol Tolerance]}==${Skill[Alcohol Tolerance].SkillCap}) /varset WorkDrunk FALSE
+/if (${Me.Skill[Alcohol Tolerance]} < ${Skill[Alcohol Tolerance].SkillCap}) /bc [+Y+] DRINKING NOT Maxed-Out!  : ${Me.Skill[Alcohol Tolerance]} of ${Skill[Alcohol Tolerance].SkillCap}
+/if (${WorkDrunk} && !${FindItemCount[=Brandy]} &&  !${FindItemCount[=Summoned: Ale]}) {
+	/varset WorkDrunk FALSE
+	/bc [+R+] PASSME Brandy
+}
+/delay 1s
+/return
+
+Sub DrunkFinish
+|Notify on Drinking - Skill Maxed 
+/if ((${Me.Skill[Alcohol Tolerance]}==${Skill[Alcohol Tolerance].SkillCap})) {
+	/bc [+G+] Drinking Maxed Out!  : ${Me.Skill[Alcohol Tolerance]}
+	/varset WorkDrunk FALSE            s
+	}
+/return
+
+Sub GetDrunk
+/if (${WorkDrunk} && !${FindItemCount[=Brandy]} &&  !${FindItemCount[=Summoned: Ale]}) {
+	/varset WorkDrunk FALSE
+	/bc [+R+] PASSME Brandy
+	/return
+}
+/useitem "Brandy"
+/useitem "Summoned: Ale"
+/return
+
+|--------------------------------------------------------------------------------------------|
+|---------------------------------------ZONE CHECKS----------------------------------------|
+|--------------------------------------------------------------------------------------------|
+Sub ZoneCheck
+    | - Zone check to turn end macro if zoning
+    /if (${Zone.ID}!=${CurrentZone}) {
+		/bc You have zoned ending macro.
+		/call WeAreDone
+    }
+	|NEED TO ADD IN HERE ALL ZONES - Bazaar, POK, GL, GH, PoTranq, Nexus 
+	/if (${Zone.ID}==202 || ${Zone.ID}==152) {
+		/bc [+R+] Disabled in ${Zone} - Restarting E3
+		/call WeAreDone
+	}
+/return
+|--------------------------------------------------------------------------------------------|
+|---------------------------------------ITEM HANDLING----------------------------------------|
+|--------------------------------------------------------------------------------------------|
+Sub ItemCheck
+/if (!${Cursor.ID}) /return
+/if (${Select[${Cursor},Berries,Vegetables,Pod Of Water,Roots,Fishing Grubs,Rabbit Meat,Fruit,Mushroom,${TrainSpell[${Me.Class.ID},6]}]}>0) {
+		/echo DESTROYING - ${Cursor} - in 3 Seconds
+		/delay 3s
+		/destroy
+/if (${Select[${Cursor},Berries,Vegetables,Pod Of Water,Roots,Fishing Grubs,Rabbit Meat,Fruit,Mushroom,${TrainSpell[${Me.Class.ID},6]}]}==0 && ${Cursor.ID}) {
+		/bc [+g+] AUTO-INV CURSOR:${Cursor} - Not on my list!
+		/autoinv
+		/delay 5
+		}
+/delay 1s
+/return
+Sub CursorClean
+/if (${Cursor.ID}>0) {
+	/if (${Select[${Cursor},Berries,Vegetables,Pod Of Water,Roots,Fishing Grubs,Rabbit Meat,Fruit,Mushroom,${TrainSpell[${Me.Class.ID},6]}]}>0) /bc [+r+] STUCK ON CURSOR: ${Cursor}
+	/call ItemCheck
+	:HandsLoop
+	/if (${Cursor.ID}>0) {
+		/bc [+R+]  Clear Hands and restart macro! - ${Cursor}
+		/delay 5s 
+		/goto :HandsLoop
+		}
+	}
+/return
+
+|--------------------------------------------------------------------------------------------|
+|----------------------------------- WE ARE FINALLY DONE-------------------------------------|
+|--------------------------------------------------------------------------------------------|
+Sub WeAreDone
+    /memspellset Main
+    /BC [+G+] I AM DONE!!!! RESTARTING E3 IN 10 SECONDS!
+	/beep
+	/beep
+	/beep
+	/delay 10s
+	/mac e3
+/return
