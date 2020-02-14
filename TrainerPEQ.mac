@@ -1,11 +1,8 @@
-| FOR PEQ USE | DO NOT AFK PLAY!!! |
+| MADE FOR PEQ USE | DO NOT AFK PLAY!!! |
 
-| DIRECTION: Find a safe place in zone other than Pok, Guild Lobby, Guild Hall or Bazaar,  <--- LOOKIE <--- IMPORTANT! 
-| Please save your current spell set as Main
-| REQUIRES: spell_routines.inc 
-| I heavily modified these files, customized, and added my own stuff to them!
+| REQUIRES: spell_routines.inc
+
 | Default Actions this script does.
-
 | Maxes out All Spell Types
 | Auto Sets your Specializations
 | Maxes out your Bard Instruments.
@@ -13,6 +10,7 @@
 | Maxes out your Hide
 | Maxes out your Sneaking
 | Maxes out your Feign Death
+| Drinks Brandy when Done
 
 | TO DO: Add Secondary Spell Specialization Training
 | TO DO: Add Language Training to this list as well.
@@ -20,17 +18,23 @@
 #turbo 40
 #include spell_routines.inc
 #Event SkillUp "You have become better at #1#! (#2#)"
-#Event MedUp "Insufficient Mana to cast this spell!#*#" 
+#Event MedUp "Insufficient Mana to cast this spell!#*#"
 
 Sub Main
 /delay 1
+/echo \ar Please save your current spell sat as Main
 /echo \ar DO NOT RUN IN POK, Guildlobby, Guildhall, Nexus, or Bazaar.
 /echo \ar Please have ALL of your spells!
-/echo \ar DO NOT MANUALLY PICKUP ITEMS WHILE USING THIS.
 /echo \ar MACRO HAS SEVERAL /DESTROY  commands built in.
+/echo \ar DO NOT MANUALLY PICKUP OR MOVE ITEMS WHILE USING THIS.
 /echo \ar YOU WILL LOSE YOUR ITEMS!
 /echo \ar TO STOP.  /ENDMACRO
+/echo \ay NOTE:  This macro is designed with LVL 70 in mind.
+/echo \ay IT DOES NOT SHUT OFF SPELL TRAINING ON BOTS UNDER LVL 70.
+/echo \ay I had to manually set the cap.  The Variable in MQ2 doesn't return the correct value.
+/echo \ag ----------------------------------------------------------
 /echo \ag Training Skills - Spells, Songs, Track, Hide, Sneak, Feign Death, Drinking <Need Brandy or Summoned: Ale>
+/echo \ar NO AFK PLAYING!!!
 
 |Stuff to Make it function
 	/call TrainerSetup
