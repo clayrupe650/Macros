@@ -75,7 +75,7 @@ Sub Main
 	|Tracking - Make Sure its still open
 		/if (${WorkTrack} && ${Me.AbilityReady[Tracking]}) /call DoTrack
 	|Sneaking
-		/if (${WorkSneak} && ${Me.AbilityReady[Sneak]}) /call DoSneak
+		/if (${WorkSneak} && (${Me.AbilityReady[Sneak]} || ${Me.Sneaking})) /call DoSneak
 	|Hide
 		/if (${WorkHide} && ${Me.AbilityReady[Hide]}) /call DoHide
 	|Feign Death
