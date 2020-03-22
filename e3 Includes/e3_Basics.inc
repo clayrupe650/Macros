@@ -195,7 +195,14 @@ SUB EVENT_bark(line, ChatSender, msgTarget, barkMsg)
   /doevents barkReturn flush
 
   :retry_Bark
-  /if (${Me.Invis}) /makemevisible
+  /if (${Me.Sneaking}) {
+	/doability Sneak
+	/delay 1
+  }
+  /if (${Me.Invis}) {
+	/makemevisible
+	/delay 1
+  }
   /call TrueTarget ${msgTarget}
   /if (${Target.Distance} > 5) /call MoveToLoc ${Target.Y} ${Target.X} 50 5
   | -Wait a moment, then bark the message.
