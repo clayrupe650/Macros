@@ -11,6 +11,7 @@
 | Maxes out your Sneaking
 | Maxes out your Feign Death
 | Drinks Brandy when Done
+| Maxes out your Mend (Monks)
 
 | TO DO: Add Secondary Spell Specialization Training
 | TO DO: Add Language Training to this list as well.
@@ -51,6 +52,7 @@ Sub Main
 	/if (${WorkHide}) /call HideSkillSetup
 	/if (${WorkDrunk}) /call DrunkSkillSetup
 	/if (${WorkDead}) /call DeadSkillSetup
+	/if (${WorkMend}) /call MendSkillSetup
 	/if (${WorkTrack}) /call TrackingSkillSetup
 	
 	
@@ -63,6 +65,7 @@ Sub Main
 		/if (${WorkSneak}) /call SneakFinish
 		/if (${WorkHide}) /call HideFinish
 		/if (${WorkDead}) /call DeadFinish
+		/if (${WorkMend}) /call MendFinish
 		/if (${WorkDrunk}) /call DrunkFinish
 	|CheckPets	
 		/if (${Me.Pet.CleanName.Equal[${Me.Name}`s familiar]} && ${Me.Class.ShortName.Equal[Wiz]}) /pet get lost
@@ -80,6 +83,8 @@ Sub Main
 		/if (${WorkHide} && ${Me.AbilityReady[Hide]}) /call DoHide
 	|Feign Death
 		/if (${WorkDead} && ${Me.AbilityReady[Feign Death]}) /call FeignMe
+	|Mend
+		/if (${WorkMend} && ${Me.AbilityReady[Mend]}) /call MendMe
 	|Drinking - Once I have finished up my Spells/Songs ... I can start drinking
 		/if ((!${WorkSongs} || !${WorkSpells}) && ${WorkDrunk}) /call GetDrunk
 	|Clear my cursor!
@@ -92,7 +97,7 @@ Sub Main
 		/call CursorClean
   
         /doevents
-		/if (!${WorkSongs} && !${WorkDead} && !${WorkDrunk} && !${WorkSpells} && !${WorkSneak} && !${WorkTrack} && !${WorkHide} && !${Cursor.ID}) /call WeAreDone
+		/if (!${WorkSongs} && !${WorkDead} && !${WorkMend} && !${WorkDrunk} && !${WorkSpells} && !${WorkSneak} && !${WorkTrack} && !${WorkHide} && !${Cursor.ID}) /call WeAreDone
 		/delay 5s
 		/goto :MainLoop
 /return
@@ -107,6 +112,7 @@ Sub TrainerSetup
 /declare WorkSneak 				bool 			outer 	FALSE
 /declare WorkDrunk 				bool 			outer 	FALSE
 /declare WorkDead				bool			outer	FALSE
+/declare WorkMend				bool			outer	FALSE
 
 /if (${Me.Skill[Tracking]} < ${Skill[Tracking].SkillCap}) /varset WorkTrack TRUE
 /if (${Me.Skill[Tracking]}==0 && ${WorkTrack}) {
@@ -125,6 +131,7 @@ Sub TrainerSetup
 }
 /if (${Me.Skill[Alcohol Tolerance]} < ${Skill[Alcohol Tolerance].SkillCap}) /varset WorkDrunk TRUE
 /if (${Me.Skill[Feign Death]} < ${Skill[Feign Death].SkillCap}) /varset WorkDead TRUE
+/if (${Me.Skill[Mend]} < ${Skill[Mend].SkillCap}) /varset WorkMend TRUE
 /if (${Select[${Me.Class.ShortName},BST,ENC,MAG,NEC,SHD]}>=1) /varset CheckForPet TRUE
 /if (${Select[${Me.Class.Name},Warrior,Berserker,Monk,Rogue,Bard]}==0) /varset WorkSpells TRUE
 /if (${Me.Class.ShortName.Equal[BRD]}) /varset WorkSongs TRUE
@@ -666,6 +673,27 @@ Sub FeignMe
 /doability "Feign Death"
 /delay 3s
 /if (!${Standing}) /stand
+/return
+|--------------------------------------------------------------------------------------------|
+|---------------------------------------MEND STUFFS----------------------------------------|
+|--------------------------------------------------------------------------------------------|
+Sub MendSkillSetup
+/if (${Me.Skill[Mend]}==${Skill[Mend].SkillCap}) /varset WorkMend FALSE
+/if (${Me.Skill[Mend]} < ${Skill[Mend].SkillCap}) /bc [+Y+] MEND NOT Maxed-Out!  : ${Me.Skill[Mend]} of ${Skill[Mend].SkillCap}
+/delay 1s
+/return
+
+Sub MendFinish
+|Notify on Mend - Skill Maxed 
+/if ((${Me.Skill[Mend]}==${Skill[Mend].SkillCap})) {
+	/bc [+G+] Mend now Maxed Out!  : ${Me.Skill[Mend]}
+	/varset WorkMend FALSE
+	}
+/return
+
+Sub MendMe
+/if (${Me.PctHPs}>50) /doability "Mend"
+/delay 3s
 /return
 |--------------------------------------------------------------------------------------------|
 |---------------------------------------DRUNK STUFFS----------------------------------------|
