@@ -679,7 +679,7 @@ Sub FeignMe
 |--------------------------------------------------------------------------------------------|
 Sub MendSkillSetup
 /if (${Me.Skill[Mend]}==${Skill[Mend].SkillCap}) /varset WorkMend FALSE
-/if (${Me.Skill[Mend]} < ${Skill[Mend].SkillCap}) /bc [+Y+] MEND NOT Maxed-Out!  : ${Me.Skill[Mend]} of ${Skill[Mend].SkillCap}
+/if (${Me.Skill[Mend]} < ${Skill[Mend].SkillCap}) /bc [+Y+] -Mend- NOT Maxed-Out!  : ${Me.Skill[Mend]} of ${Skill[Mend].SkillCap}
 /delay 1s
 /return
 
@@ -735,9 +735,10 @@ Sub ZoneCheck
 		/bc You have zoned ending macro.
 		/call WeAreDone
     }
-	|NEED TO ADD IN HERE ALL ZONES - Bazaar, POK, GL, GH, PoTranq, Nexus 
-	/if (${Zone.ID}==202 || ${Zone.ID}==152) {
-		/bc [+R+] Disabled in ${Zone} - Restarting E3
+	|MACRO IS DISABLED IN - |202 POK|151 Bazaar|152 Nexus|344 Guild Lobby|203 PoTranq|
+	|MACRO DOES WORK IN GUILD HALL 345|
+	/if (${Select[${Zone.ID},202,151,152,344,203]}>0) {
+		/bc [+R+] Intentionally Disabled in ${Zone} - Restarting E3
 		/call WeAreDone
 	}
 /return
@@ -747,9 +748,9 @@ Sub ZoneCheck
 Sub ItemCheck
 /if (!${Cursor.ID}) /return
 /if (${Select[${Cursor},Berries,Vegetables,Pod Of Water,Roots,Fishing Grubs,Rabbit Meat,Fruit,Mushroom,${TrainSpell[${Me.Class.ID},6]}]}>0) {
-		/echo DESTROYING - ${Cursor} - in 3 Seconds
-		/delay 3s
-		/destroy
+		/echo DESTROYING - ${Cursor} - in 2 Seconds
+		/delay 2s
+		/if (${Select[${Cursor},Berries,Vegetables,Pod Of Water,Roots,Fishing Grubs,Rabbit Meat,Fruit,Mushroom,${TrainSpell[${Me.Class.ID},6]}]}>0) /destroy
 /if (${Select[${Cursor},Berries,Vegetables,Pod Of Water,Roots,Fishing Grubs,Rabbit Meat,Fruit,Mushroom,${TrainSpell[${Me.Class.ID},6]}]}==0 && ${Cursor.ID}) {
 		/bc [+g+] AUTO-INV CURSOR:${Cursor} - Not on my list!
 		/autoinv
@@ -776,8 +777,6 @@ Sub CursorClean
 Sub WeAreDone
     /memspellset Main
     /BC [+G+] I AM DONE!!!! RESTARTING E3 IN 10 SECONDS!
-	/beep
-	/beep
 	/beep
 	/delay 10s
 	/mac e3
