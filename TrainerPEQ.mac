@@ -587,7 +587,7 @@ Sub TrackingSkillSetup
 /if (${Me.Skill[Tracking]}==${Skill[Tracking].SkillCap}) /varset WorkTrack FALSE
 /if (${Me.Skill[Tracking]} < ${Skill[Tracking].SkillCap}) {
 	/bc [+Y+] Tracking NOT Maxed-Out!  : ${Me.Skill[Tracking]} of ${Skill[Tracking].SkillCap}
-	/deability Track
+	/doability Track
 	}
 /delay 1s
 /return
